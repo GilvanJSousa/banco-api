@@ -314,3 +314,69 @@ Este projeto foi migrado de MySQL para MongoDB Atlas. As principais mudanças in
 - **Escalabilidade**: Auto-scaling baseado em demanda
 - **Disponibilidade**: 99.95% uptime garantido
 - **Suporte**: Suporte 24/7 disponível
+
+## 📊 Consultando dados diretamente no MongoDB Atlas
+
+Você pode consultar todos os dados do banco (usuários, contas, transferências) a qualquer momento usando o comando:
+
+```sh
+npm run consultar
+```
+
+### Exemplo de uso
+
+```sh
+npm run consultar
+```
+
+### Saída esperada
+
+```
+🔍 Verificando configuração:
+   MONGO_URI definida: ✅ Sim
+   Usando URI: ✅ Atlas
+✅ MongoDB Atlas conectado com sucesso
+
+🔄 Consultando dados no MongoDB Atlas...
+
+👤 USUARIOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. admin
+     ID: 6866d50e8b9b1ff293d31296
+  2. usuario
+     ID: 6866d50e8b9b1ff293d31297
+
+💰 CONTAS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Ana Costa
+     Saldo: R$ 3000.00
+     Status: ❌ Inativa
+     ID: 6866d50d8b9b1ff293d31291
+  2. Joao Silva
+     Saldo: R$ 1000.00
+     Status: ✅ Ativa
+     ID: 6866d50d8b9b1ff293d3128e
+  ...
+
+💸 TRANSFERENCIAS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Transferência 6866beb554f7e3896d3a9f39
+     De: Joao Silva
+     Para: Maria Santos
+     Valor: R$ 150.00
+     Autenticada: ❌ Não
+     Data: 03/07/2025 15:00:00
+  ...
+
+📊 RESUMO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   👤 Usuários: 2
+   💰 Contas: 4
+   💸 Transferências: 3
+
+🚀 Dados consultados com sucesso!
+💡 Use os IDs das contas para testar transferências
+🔌 Desconectado do MongoDB Atlas
+```
+
+Sempre que quiser conferir os dados reais do banco, basta rodar esse comando!
