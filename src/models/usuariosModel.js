@@ -1,13 +1,29 @@
-const db = require('./db');
+const { mongoose } = require('./db');
 
+// Schema para Usuários
+const UsuarioSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  senha: {
+    type: String,
+    required: true
+  }
+}, {
+  timestamps: true
+});
+
+const Usuario = mongoose.model('Usuario', UsuarioSchema);
+
+// Funções do Model
 async function getUsuarioByCredenciais(username, senha) {
-    const [result] = await db.query(
-        'SELECT * FROM usuarios WHERE username = ? AND senha = ?',
-        [username, senha]
-    );
-    return result[0];
+  return await Usuario.findOne({ username, senha });
 }
 
 module.exports = { 
-    getUsuarioByCredenciais 
+  Usuario,
+  getUsuarioByCredenciais 
 };

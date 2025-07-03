@@ -1,4 +1,3 @@
-
 # Banco API - Documentação
 
 ## Visão Geral
@@ -97,63 +96,60 @@ O projeto é composto por duas APIs independentes que oferecem suporte a operaç
 Antes de iniciar, certifique-se de que você tenha as seguintes ferramentas instaladas:
 
 - [Node.js](https://nodejs.org/)
-- [MySQL](https://www.mysql.com/)
+- [MongoDB Atlas](https://cloud.mongodb.com/) (recomendado) ou [MongoDB](https://www.mongodb.com/) local
 - Gerenciador de pacotes npm (vem com o Node.js)
 
 ---
 
 ## Instruções de Configuração
 
-### 1. Variáveis de Ambiente (`.env`)
+### 1. Configuração MongoDB Atlas (Recomendado)
+
+#### Opção A: Usar MongoDB Atlas (Cloud)
+1. **Acesse o MongoDB Atlas**: [https://cloud.mongodb.com/v2/6634d1779da27930d01c3790#/overview](https://cloud.mongodb.com/v2/6634d1779da27930d01c3790#/overview)
+
+2. **Obter String de Conexão**:
+   - No dashboard do Atlas, clique em "Connect"
+   - Escolha "Connect your application"
+   - Copie a string de conexão fornecida
+
+3. **Configurar IP Whitelist**:
+   - No Atlas, va em "Network Access"
+   - Adicione seu IP atual ou `0.0.0.0/0` para acesso global
+
+4. **Criar Usuário do Banco**:
+   - No Atlas, va em "Database Access"
+   - Crie um usuário com permissões de leitura/escrita
+
+#### Opção B: MongoDB Local
+1. **Instalar MongoDB**:
+   - **Windows**: Baixe e instale o [MongoDB Community Server](https://www.mongodb.com/try/download/community)
+   - **macOS**: `brew install mongodb-community`
+   - **Linux**: `sudo apt-get install mongodb`
+
+2. **Iniciar o MongoDB**:
+   - **Windows**: O MongoDB deve iniciar automaticamente como serviço
+   - **macOS/Linux**: `sudo systemctl start mongod` ou `brew services start mongodb-community`
+
+### 2. Variáveis de Ambiente (`.env`)
 Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
 ```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=root
-DB_NAME=banco
+# MongoDB Atlas (recomendado)
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/banco?retryWrites=true&w=majority
+
+# MongoDB Local (alternativa)
+# MONGO_URI=mongodb://localhost:27017/banco
+
 JWT_SECRET=sua_chave_secreta
 PORT=3000
 GRAPHQLPORT=3001
 ```
 
-### 2. Inicialização do Banco de Dados
-
-1. Crie o banco de dados e suas tabelas executando o script abaixo no MySQL:
-   ```sql
-   CREATE DATABASE banco;
-   USE banco;
-
-   CREATE TABLE contas (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       titular VARCHAR(100) NOT NULL,
-       saldo DECIMAL(10, 2) NOT NULL,
-       ativa BOOLEAN DEFAULT TRUE
-   );
-
-   CREATE TABLE transferencias (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       conta_origem_id INT NOT NULL,
-       conta_destino_id INT NOT NULL,
-       valor DECIMAL(10, 2) NOT NULL,
-       data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
-       autenticada BOOLEAN DEFAULT FALSE,
-       FOREIGN KEY (conta_origem_id) REFERENCES contas(id),
-       FOREIGN KEY (conta_destino_id) REFERENCES contas(id)
-   );
-
-   CREATE TABLE usuarios (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       username VARCHAR(50) NOT NULL UNIQUE,
-       senha VARCHAR(255) NOT NULL
-   );
-   ```
-
-2. Verifique se as tabelas foram criadas corretamente:
-   ```sql
-   USE banco;
-   SHOW TABLES;
-   ```
+**Substitua os valores**:
+- `<username>`: Seu usuário do MongoDB Atlas
+- `<password>`: Sua senha do MongoDB Atlas  
+- `<cluster>`: Nome do seu cluster no Atlas
 
 ---
 
@@ -165,7 +161,12 @@ Execute o comando abaixo na raiz do projeto:
 npm install
 ```
 
-### 2. Executar APIs
+### 2. Popular Dados Iniciais
+```bash
+npm run seed
+```
+
+### 3. Executar APIs
 - Para iniciar a **API REST**:
   ```bash
   npm run rest-api
@@ -199,16 +200,15 @@ Para visualizar o Swagger, certifique-se de que a API REST esteja em execução.
 ```plaintext
 project/
 ├── src/
-│   ├── config/
-│   │   └── database.js
 │   ├── models/
-│   │   └── contaModel.js
-│   ├── services/
-│   │   ├── contaService.js
-│   │   ├── loginService.js
-│   │   └── transferenciaService.js
-│   └── utils/
-│       └── errorHandler.js
+│   │   ├── db.js (configuração MongoDB Atlas)
+│   │   ├── contasModel.js (schema Mongoose)
+│   │   ├── usuariosModel.js (schema Mongoose)
+│   │   └── transferenciasModel.js (schema Mongoose)
+│   └── services/
+│       ├── contaService.js
+│       ├── loginService.js
+│       └── transferenciaService.js
 ├── rest/
 │   ├── app.js
 │   ├── controllers/
@@ -230,6 +230,8 @@ project/
 │   ├── schema/
 │   │   └── index.js
 │   ├── typeDefs.js
+├── scripts/
+│   └── seed.js (população de dados iniciais)
 ├── config/
 │   └── serverConfig.js
 ├── .env
@@ -274,3 +276,41 @@ Base URL: `http://localhost:3000`
 - **GET /contas**: Retorna todas as contas.
 - **POST /login**: Realiza a autenticação de um usuário.
 - **POST /transferencias**: Realiza uma transferência entre contas.
+
+---
+
+## Migracao MySQL para MongoDB Atlas
+
+Este projeto foi migrado de MySQL para MongoDB Atlas. As principais mudanças incluem:
+
+### Mudanças Técnicas
+- **Banco de dados**: MySQL → MongoDB Atlas (Cloud)
+- **ORM**: Queries SQL → Mongoose ODM
+- **IDs**: Auto-increment → ObjectId
+- **Relacionamentos**: Foreign Keys → Referencias
+- **Infraestrutura**: Local → Cloud (MongoDB Atlas)
+
+### Beneficios da Migracao
+- **Flexibilidade**: Schema flexível para evolução rápida
+- **Performance**: Melhor performance para operações de leitura
+- **Escalabilidade**: Horizontal scaling nativo
+- **Desenvolvimento**: Documentos JSON nativos
+- **Confiabilidade**: Backup automático e alta disponibilidade
+- **Acesso Remoto**: Conexão de qualquer lugar
+- **Monitoramento**: Dashboard integrado do Atlas
+
+### Consideracoes Importantes
+- **Transacoes**: MongoDB suporta transações, mas com limitações
+- **Integridade**: Validacoes devem ser implementadas no codigo
+- **Relacionamentos**: Usar `populate()` para joins
+- **Indexacao**: Configurar índices para performance ótima
+- **Conexao**: Configurar IP whitelist no Atlas
+- **Seguranca**: Usar variaveis de ambiente para credenciais
+
+### Vantagens do MongoDB Atlas
+- **Backup Automático**: Backups diários automáticos
+- **Monitoramento**: Metrics e alertas integrados
+- **Seguranca**: Criptografia em repouso e transito
+- **Escalabilidade**: Auto-scaling baseado em demanda
+- **Disponibilidade**: 99.95% uptime garantido
+- **Suporte**: Suporte 24/7 disponível

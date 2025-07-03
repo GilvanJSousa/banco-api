@@ -1,21 +1,48 @@
-const db = require('./db');
+const { mongoose } = require('./db');
 
+// Schema para Contas
+const ContaSchema = new mongoose.Schema({
+  titular: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  saldo: {
+    type: Number,
+    required: true,
+    default: 0,
+    min: 0
+  },
+  ativa: {
+    type: Boolean,
+    default: true
+  }
+}, {
+  timestamps: true
+});
+
+const Conta = mongoose.model('Conta', ContaSchema);
+
+// Funções do Model
 async function getContas() {
-    const [result] = await db.query('SELECT id, titular, saldo, ativa FROM contas ORDER BY titular ASC');
-    return result;
+  return await Conta.find().sort({ titular: 1 });
 }
 
 async function getContaById(id) {
-    const [result] = await db.query('SELECT id, titular, saldo, ativa FROM contas WHERE id = ?', [id]);
-    return result[0];
+  return await Conta.findById(id);
 }
 
 async function atualizarSaldo(id, valor) {
-    await db.query('UPDATE contas SET saldo = saldo + ? WHERE id = ?', [valor, id]);
+  return await Conta.findByIdAndUpdate(
+    id,
+    { $inc: { saldo: valor } },
+    { new: true }
+  );
 }
 
 module.exports = { 
-    getContas,
-    getContaById, 
-    atualizarSaldo 
+  Conta,
+  getContas,
+  getContaById, 
+  atualizarSaldo 
 };

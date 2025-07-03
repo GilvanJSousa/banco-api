@@ -1,87 +1,113 @@
-const db = require('./db');
+const { mongoose } = require('./db');
 
+// Schema para Transferências
+const TransferenciaSchema = new mongoose.Schema({
+  contaOrigem: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conta',
+    required: true
+  },
+  contaDestino: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conta',
+    required: true
+  },
+  valor: {
+    type: Number,
+    required: true,
+    min: 10
+  },
+  autenticada: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true
+});
+
+const Transferencia = mongoose.model('Transferencia', TransferenciaSchema);
+
+// Funções do Model
 async function inserirTransferencia(contaOrigem, contaDestino, valor, autenticada) {
-    await db.query(
-        'INSERT INTO transferencias (conta_origem_id, conta_destino_id, valor, autenticada) VALUES (?, ?, ?, ?)',
-        [contaOrigem, contaDestino, valor, autenticada]
-    );
+  const transferencia = new Transferencia({
+    contaOrigem,
+    contaDestino,
+    valor,
+    autenticada
+  });
+  return await transferencia.save();
 }
 
 async function getTransferenciasPaginadas(limit, offset) {
-    const [result] = await db.query(
-        'SELECT transferencias.*, origem.titular AS titular_origem, destino.titular AS titular_destino FROM transferencias JOIN contas AS origem ON transferencias.conta_origem_id = origem.id JOIN contas AS destino ON transferencias.conta_destino_id = destino.id ORDER BY transferencias.id DESC LIMIT ? OFFSET ?',
-        [parseInt(limit), parseInt(offset)]
-    );
-    return result;
+  return await Transferencia.find()
+    .populate('contaOrigem', 'titular')
+    .populate('contaDestino', 'titular')
+    .sort({ createdAt: -1 })
+    .limit(parseInt(limit))
+    .skip(parseInt(offset));
 }
 
 async function getTotalTransferencias() {
-    const [[{ total }]] = await db.query('SELECT COUNT(*) AS total FROM transferencias');
-    return total;
+  return await Transferencia.countDocuments();
 }
 
 async function getTransferenciaById(id) {
-    const [transferencia] = await db.query('SELECT * FROM transferencias WHERE id = ?', [id]);
-    return transferencia[0]; 
+  return await Transferencia.findById(id)
+    .populate('contaOrigem', 'titular')
+    .populate('contaDestino', 'titular');
 }
 
 async function atualizarTransferencia(id, contaOrigem, contaDestino, valor, autenticada) {
-    await db.query(
-        `UPDATE transferencias 
-         SET conta_origem_id = ?, conta_destino_id = ?, valor = ?, autenticada = ? 
-         WHERE id = ?`,
-        [contaOrigem, contaDestino, valor, autenticada, id]
-    );
+  return await Transferencia.findByIdAndUpdate(
+    id,
+    {
+      contaOrigem,
+      contaDestino,
+      valor,
+      autenticada
+    },
+    { new: true }
+  );
 }
 
 async function modificarTransferencia(id, campos) {
-    const camposConvertidos = {};
+  const camposConvertidos = {};
 
-    for (const chave in campos) {
-        if (chave === 'token') {
-            continue; // ignora o campo token
-        }
-
-        switch (chave) {
-            case 'contaOrigem':
-                camposConvertidos['conta_origem_id'] = campos[chave];
-                break;
-            case 'contaDestino':
-                camposConvertidos['conta_destino_id'] = campos[chave];
-                break;
-            default:
-                camposConvertidos[chave] = campos[chave];
-        }
+  for (const chave in campos) {
+    if (chave === 'token') {
+      continue; // ignora o campo token
     }
 
-    const keys = Object.keys(camposConvertidos);
-    if (keys.length === 0) return;
+    switch (chave) {
+      case 'contaOrigem':
+        camposConvertidos['contaOrigem'] = campos[chave];
+        break;
+      case 'contaDestino':
+        camposConvertidos['contaDestino'] = campos[chave];
+        break;
+      default:
+        camposConvertidos[chave] = campos[chave];
+    }
+  }
 
-    const valores = keys.map(k => camposConvertidos[k]);
-    const setClause = keys.map(k => `${k} = ?`).join(', ');
-
-    await db.query(
-        `UPDATE transferencias 
-         SET ${setClause} 
-         WHERE id = ?`,
-        [...valores, id]
-    );
+  return await Transferencia.findByIdAndUpdate(
+    id,
+    camposConvertidos,
+    { new: true }
+  );
 }
 
-
 async function removerTransferencia(id) {
-    await db.query(
-        `DELETE FROM transferencias WHERE id = ?`,
-        [id]
-    );
+  return await Transferencia.findByIdAndDelete(id);
 }
 
 module.exports = { 
-    inserirTransferencia, 
-    getTransferenciasPaginadas, 
-    getTotalTransferencias,
-    getTransferenciaById,
-    atualizarTransferencia,
-    modificarTransferencia,
-    removerTransferencia
+  Transferencia,
+  inserirTransferencia, 
+  getTransferenciasPaginadas, 
+  getTotalTransferencias,
+  getTransferenciaById,
+  atualizarTransferencia,
+  modificarTransferencia,
+  removerTransferencia
 };

@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "rest-api": "node rest/app.js",
-    "graphql-api": "node graphql/app.js"
+    "graphql-api": "node graphql/app.js",
+    "seed": "node scripts/seed.js",
+    "create-env": "node scripts/create-env.js"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +21,7 @@
     "graphql": "^16.10.0",
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.12.0",
+    "mongoose": "^8.0.0",
     "open-api-test-automation-coverage": "^1.0.0",
     "swagger-ui-express": "^5.0.1"
   }

@@ -1,6 +1,7 @@
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./config/swagger');
+const { connectDB } = require('../src/models/db');
 require('dotenv').config();
 
 const loginRoutes = require('./routes/loginRoutes');
@@ -8,7 +9,6 @@ const transferenciaRoutes = require('./routes/transferenciaRoutes');
 const contaRoutes = require('./routes/contaRoutes');
 
 const gerenciarErros = require('./middleware/gerenciarErros');
-
 
 const app = express();
 
@@ -21,6 +21,17 @@ app.use('/contas', contaRoutes);
 
 app.use(gerenciarErros);
 
-app.listen(process.env.PORT, () => {
-    console.log(`Servidor rodando na porta ${process.env.PORT}`);
-});
+// Conectar ao MongoDB antes de iniciar o servidor
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(process.env.PORT, () => {
+      console.log(`Servidor REST rodando na porta ${process.env.PORT}`);
+    });
+  } catch (error) {
+    console.error('Erro ao iniciar servidor:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
