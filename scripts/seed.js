@@ -20,22 +20,22 @@ const seedData = async () => {
     const contas = await Conta.create([
       {
         titular: 'Joao Silva',
-        saldo: 1000.00,
-        ativa: true
-      },
-      {
-        titular: 'Maria Santos',
         saldo: 2500.00,
         ativa: true
       },
       {
+        titular: 'Maria Santos',
+        saldo: 5000.00,
+        ativa: true
+      },
+      {
         titular: 'Pedro Oliveira',
-        saldo: 500.00,
+        saldo: 1000.00,
         ativa: true
       },
       {
         titular: 'Ana Costa',
-        saldo: 3000.00,
+        saldo: 6000.00,
         ativa: false
       }
     ]);

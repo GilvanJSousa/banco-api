@@ -3,6 +3,10 @@ const contasModel = require('../models/contasModel');
 const transferenciasModel = require('../models/transferenciasModel');
 
 async function realizarTransferencia(contaOrigem, contaDestino, valor, token) {
+    if (contaOrigem === contaDestino) {
+        throw createError(422, 'Conta de origem e destino devem ser diferentes.');
+    }
+
     if (valor < 10) {
         throw createError(422, 'O valor da transferencia deve ser maior ou igual a R$10,00.');
     }
